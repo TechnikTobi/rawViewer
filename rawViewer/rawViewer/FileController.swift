@@ -6,13 +6,24 @@
 //
 
 import Foundation
+import Cocoa
 
 class FileController: NSObject
 {
-    private var currentDirectory: NSURL?;
+    var currentDirectory: NSURL? = nil;
     
     func openFile()
     {
-        print("openFile called");
+        let openFilePanel = NSOpenPanel();
+    }
+    
+    func next()
+    {
+        
+    }
+    
+    func prev()
+    {
+        
     }
 }

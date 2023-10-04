@@ -10,27 +10,18 @@ import Cocoa
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
 
-    @IBAction func menuFileOpen(_ sender: NSMenuItem)
-    {
-        if let window = NSApp.keyWindow
-        {
-            
-            
-            
-            /*
-            if let controller = window.contentViewController
-            {
-                (window_controller.contentViewController as! ViewController).fileController.openFile();
-            }
-             */
-            
-        }
+    @IBAction func menuFileOpen(_ sender: Any) {
+        
+        let viewController = NSApp.keyWindow?.contentViewController as! ViewController;
+        
+        viewController.viewDidLoad();
+        
     }
+    
+
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
-        
-        
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
