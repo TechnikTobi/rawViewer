@@ -71,7 +71,7 @@ class ViewController: NSViewController, Observer {
             
             Task
             {
-                let lookahead = 3;
+                let lookahead = 2;
                 var next: URL? = url;
                 
                 for _ in 0...lookahead
