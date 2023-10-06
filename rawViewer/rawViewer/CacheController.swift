@@ -10,8 +10,8 @@ import AppKit
 
 class CacheController
 {
-    static let MAX_CACHE_COUNT = 5 // 20;
-    static let MIN_CACHE_COUNT = 0 // 10;
+    static let MAX_CACHE_COUNT = 20;
+    static let MIN_CACHE_COUNT = 10;
     
     var lock: DispatchQueue = DispatchQueue.init(label: "")
     
@@ -19,26 +19,20 @@ class CacheController
     
     func getImage(url: URL) async -> NSImage?
     {
-        var image: NSImage?
         
-        lock.sync
+        if self.cache.keys.contains(url)
         {
-            print(self.cache.keys)
-            
-            if self.cache.keys.contains(url)
-            {
-                self.cache[url]!.0 = DispatchTime.now();
-                image = self.cache[url]?.1;
-            }
+            // self.cache[url]!.0 = DispatchTime.now();
+            return self.cache[url]?.1;
         }
-        
+    
         Task
         {
             self.cleanup()
             self.lookahead(forURL: url)
         }
         
-        return (image != nil) ? image : cacheImage(url: url);
+        return cacheImage(url: url);
     }
     
     func cacheImage(url: URL) -> NSImage?
