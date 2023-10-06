@@ -154,10 +154,10 @@
                                                 <action selector="pasteAsPlainText:" target="Ady-hI-5gd" id="cEh-KX-wJQ"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Delete" id="pa3-QI-u2k">
+                                        <menuItem title="Delete" keyEquivalent="" id="pa3-QI-u2k">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="delete:" target="Ady-hI-5gd" id="0Mk-Ml-PaM"/>
+                                                <action selector="menuEditDelete:" target="Voe-Tx-rLC" id="FpB-iK-iKH"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Select All" keyEquivalent="a" id="Ruw-6m-B2m">
@@ -720,10 +720,16 @@
                                 <rect key="frame" x="232" y="127" width="16" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                             </progressIndicator>
+                            <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GgP-fG-aGU">
+                                <rect key="frame" x="20" y="202" width="48" height="48"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="3rM-dj-7mh"/>
+                            </imageView>
                         </subviews>
                     </view>
                     <connections>
                         <outlet property="imageView" destination="62D-Am-CBv" id="Oa3-d6-xAW"/>
+                        <outlet property="preview" destination="GgP-fG-aGU" id="eyQ-Cx-1tA"/>
                         <outlet property="progressIndicator" destination="cUo-6e-x6Q" id="420-Oc-gOQ"/>
                     </connections>
                 </viewController>

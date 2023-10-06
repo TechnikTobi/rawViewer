@@ -16,6 +16,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let viewController = NSApp.keyWindow?.contentViewController as! ViewController;
         viewController.fileController.openDirectory();
     }
+    
+    @IBAction func menuEditDelete(_ sender: Any) {
+        let viewController = NSApp.keyWindow?.contentViewController as! ViewController;
+        viewController.fileController.deleteCurrentFile();
+    }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application

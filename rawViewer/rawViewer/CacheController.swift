@@ -34,27 +34,22 @@ class CacheController
         {
             lock.sync
             {
-                // repeat
-                if self.cache.count % 2 == 0
+                repeat
                 {
                     if let next = self.findNextImageOutsideOfCache()
                     {
                         self.cache[next] = (DispatchTime.now(), self.loadImage(url: next)!)
                     }
                 }
-                // while self.cache.count < CacheController.MIN_CACHE_COUNT
+                while self.cache.count < CacheController.MIN_CACHE_COUNT
             }
         }
         
-        print("returning image...")
         return image;
     }
     
     func loadImage(url: URL) -> NSImage?
     {
-        print("loading ", url.lastPathComponent, "...")
-        //let image = NSImage(byReferencing: url);
-        // let image = NSImage(contentsOfFile: url.absoluteURL.path);
         let image = NSImage(contentsOf: url)
         return image;
     }
@@ -83,16 +78,25 @@ class CacheController
         return directoryContents;
     }
     
+    func findNextImageFor(forURL url: URL?) -> URL?
+    {
+        if url == nil { return nil; }
+        
+        let directoryContents = self.scanDirectory(forURL: url!);
+        if let urlIndex = directoryContents.firstIndex(of: url!)
+        {
+            let nextIndex = urlIndex+1;
+            return nextIndex < directoryContents.count ? directoryContents[nextIndex] : nil;
+        }
+        
+        return nil;
+    }
+    
     func findNextImageOutsideOfCache() -> URL?
     {
         if let maxURLinCache = self.cache.keys.max(by: { $0.absoluteURL.path < $1.absoluteURL.path })
         {
-            let directoryContents = self.scanDirectory(forURL: maxURLinCache);
-            if let maxURLindex = directoryContents.firstIndex(of: maxURLinCache)
-            {
-                let nextIndex = maxURLindex+1;
-                return nextIndex < directoryContents.count ? directoryContents[nextIndex] : nil;
-            }
+            return self.findNextImageFor(forURL: maxURLinCache)
         }
         
         return nil;

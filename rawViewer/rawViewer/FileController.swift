@@ -127,4 +127,21 @@ class FileController: NSObject
         self.currentFile = url;
         self.publisher.send();
     }
+    
+    func deleteCurrentFile()
+    {
+        if let toBeDeleted = self.currentFile
+        {
+            do
+            {
+                try FileManager.default.trashItem(at: toBeDeleted, resultingItemURL: nil);
+                self.switchImage(next: true);
+            }
+            catch
+            {
+                print("\(error)")
+            }
+        }
+    }
+    
 }

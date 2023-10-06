@@ -14,6 +14,7 @@ class ViewController: NSViewController, Observer {
     
     @IBOutlet weak var progressIndicator: NSProgressIndicator!
     
+    @IBOutlet weak var preview: NSImageView!
     
     // Internal variables
     var fileController = FileController();
@@ -61,20 +62,36 @@ class ViewController: NSViewController, Observer {
     {
         if let url = self.fileController.currentFile
         {
-            //Task
-            
-                print("requesting image...")
-                let image = (NSApplication.shared.delegate as! AppDelegate).cacheController.getImage(url: url);
-                print("got image...")
-                self.imageView.image = image;
-                print("set image")
-                self.progressIndicator.isHidden = true;
-                self.progressIndicator.stopAnimation(nil);
-            
-            
             self.imageView.window?.title = url.lastPathComponent;
+            
+            
+            
+            print("requesting image...")
+            let image = (NSApplication.shared.delegate as! AppDelegate).cacheController.getImage(url: url);
+            self.imageView.image = image;
+            
+            Task
+            {
+                let lookahead = 3;
+                var next: URL? = url;
+                
+                for _ in 0...lookahead
+                {
+                    next = (NSApplication.shared.delegate as! AppDelegate).cacheController.findNextImageFor(forURL: next);
+                    if next == nil { break; }
+                    let nextImage = (NSApplication.shared.delegate as! AppDelegate).cacheController.getImage(url: next!);
+                    self.preview.image = nextImage;
+                    
+                }
+            }
+        
+            /*
+            self.progressIndicator.isHidden = true;
+            self.progressIndicator.stopAnimation(nil);
+        
             self.progressIndicator.isHidden = false;
             self.progressIndicator.startAnimation(nil);
+            */
         }
         else
         {
