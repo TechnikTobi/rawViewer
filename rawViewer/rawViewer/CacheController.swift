@@ -14,9 +14,87 @@ class CacheController
     static let MIN_CACHE_COUNT = 10;
     
     var lock: DispatchQueue = DispatchQueue.init(label: "")
-    
     var cache: [URL: (DispatchTime, NSImage)] = [:];
     
+    func getImage(url: URL) async -> NSImage?
+    {
+        if self.cache.keys.contains(url)
+        {
+            print("found in cache!")
+            
+            Task
+            {
+                if let next = self.findNextImageOutsideOfCache()
+                {
+                    let image = cacheImage(url: next);
+                }
+            }
+            
+            return self.cache[url]?.1;
+        }
+        
+        return cacheImage(url: url);
+    }
+    
+    func cacheImage(url: URL) -> NSImage?
+    {
+        print("why does this get called?")
+        let image = NSImage(byReferencing: url);
+        lock.sync
+        {
+            self.cache[url] = (DispatchTime.now(), image);
+        }
+        
+        print("Next: ", self.findNextImageOutsideOfCache())
+        
+        return image;
+    }
+    
+    func initCacheFill()
+    {
+        
+    }
+    
+    func scanDirectory(forURL url: URL) -> [URL]
+    {
+        let directoryURL = url.deletingPathExtension().deletingLastPathComponent();
+        var directoryContents: [URL] = [];
+        
+        if let scanResult = try? FileManager.default.contentsOfDirectory(atPath: directoryURL.absoluteURL.path)
+        {
+            for item in scanResult
+            {
+                let suffix = URL(fileURLWithPath: item).pathExtension;
+                if suffix.lowercased() == "rw2" || suffix.lowercased() == "jpg"
+                {
+                    directoryContents.append(
+                        URL(filePath: item, relativeTo: directoryURL)
+                    )
+                }
+            }
+            
+            directoryContents.sort(by:{ $0.absoluteString < $1.absoluteString })
+        }
+        
+        return directoryContents;
+    }
+    
+    func findNextImageOutsideOfCache() -> URL?
+    {
+        if let maxURLinCache = self.cache.keys.max(by: { $0.absoluteURL.path < $1.absoluteURL.path })
+        {
+            let directoryContents = self.scanDirectory(forURL: maxURLinCache);
+            if let maxURLindex = directoryContents.firstIndex(of: maxURLinCache)
+            {
+                let nextIndex = maxURLindex+1;
+                return nextIndex < directoryContents.count ? directoryContents[nextIndex] : nil;
+            }
+        }
+        
+        return nil;
+    }
+    
+    /*
     func getImage(url: URL) async -> NSImage?
     {
         
@@ -37,7 +115,7 @@ class CacheController
     
     func cacheImage(url: URL) -> NSImage?
     {
-        print("this should not get called actually")
+        print("why does this get called?")
         let image = NSImage(byReferencing: url);
         lock.sync
         {
@@ -48,18 +126,6 @@ class CacheController
     
     func cleanup()
     {
-        // Remove cached items where the files have been deleted
-        // Disabled in case the delete operation gets un-done and we quickly need the image again to be displayed
-        /*
-        for url in self.cache.keys
-        {
-            if !FileManager.default.fileExists(atPath: url.absoluteURL.path)
-            {
-                self.cache.removeValue(forKey: url);
-            }
-        }
-        */
-        
         lock.sync
         {
             if self.cache.count > CacheController.MAX_CACHE_COUNT
@@ -78,10 +144,6 @@ class CacheController
             }
             print("Current cache size: ", self.cache.count)
         }
-        
-        
-        
-        
     }
     
     func lookahead(forURL url: URL)
@@ -110,13 +172,18 @@ class CacheController
             var offset = 1;
             lock.sync
             {
-                while self.cache.count < CacheController.MAX_CACHE_COUNT
+                repeat
                 {
                     let newURL = currentDirectoryContents[currentIndex+offset]
-                    self.cache[newURL] = (DispatchTime.now(), NSImage(byReferencing: newURL));
+                    print("Reading file ", newURL)
+                    let image = NSImage(byReferencing: newURL);
+                    image.cacheMode = .always;
+                    print(image.size)
+                    self.cache[newURL] = (DispatchTime.now(), image);
                     offset += 1;
-                }
+                } while self.cache.count < CacheController.MIN_CACHE_COUNT
             }
         }
     }
+    */
 }
