@@ -16,7 +16,7 @@ class CacheController
     var lock: DispatchQueue = DispatchQueue.init(label: "")
     var cache: [URL: (DispatchTime, NSImage)] = [:];
     
-    func getImage(url: URL) async -> NSImage?
+    func getImage(url: URL) -> NSImage?
     {
         var image: NSImage?
         
@@ -46,6 +46,7 @@ class CacheController
             }
         }
         
+        print("returning image...")
         return image;
     }
     
@@ -53,7 +54,8 @@ class CacheController
     {
         print("loading ", url.lastPathComponent, "...")
         //let image = NSImage(byReferencing: url);
-        let image = NSImage(contentsOfFile: url.absoluteURL.path);
+        // let image = NSImage(contentsOfFile: url.absoluteURL.path);
+        let image = NSImage(contentsOf: url)
         return image;
     }
     
