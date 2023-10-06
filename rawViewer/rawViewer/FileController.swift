@@ -12,10 +12,10 @@ class FileController: NSObject
 {
     var publisher = Publisher();
     
-    @Published var currentDirectory: NSURL? = nil;
-    @Published var currentFile: NSURL? = nil;
+    @Published var currentDirectory: URL? = nil;
+    @Published var currentFile: URL? = nil;
     
-    var currentDirectoryContents: [NSURL] = [];
+    var currentDirectoryContents: [URL] = [];
     
     func openDirectory()
     {
@@ -23,7 +23,7 @@ class FileController: NSObject
         
         // Configuring the open panel
         openFilePanel.canChooseDirectories    = true;
-        openFilePanel.canChooseFiles          = false; // true;
+        openFilePanel.canChooseFiles          = true; // true;
         openFilePanel.allowsMultipleSelection = false;
         openFilePanel.styleMask               = .nonactivatingPanel;
         
@@ -34,17 +34,21 @@ class FileController: NSObject
                 var is_directory: ObjCBool = false;
                 
                 // Checks if the URL points to something that exists and if it's a directory or not
-                if !FileManager.default.fileExists(atPath: newURL.path(), isDirectory: &is_directory)
+                if !FileManager.default.fileExists(atPath: newURL.absoluteURL.path, isDirectory: &is_directory)
                 {
                     return;
                 }
                 
                 if !is_directory.boolValue
                 {
-                    currentDirectory = NSURL(string: newURL.deletingPathExtension().deletingLastPathComponent().path + "/");
+                    self.currentDirectory = newURL.deletingPathExtension().deletingLastPathComponent();
+                }
+                else
+                {
+                    self.currentDirectory = newURL;
                 }
                 
-                self.publisher.send();
+                self.switchImage(next: true)
             }
             else
             {
@@ -52,24 +56,34 @@ class FileController: NSObject
                 print("Could not get URL from open panel")
             }
         }
+        else
+        {
+            NSSound.beep()
+            print("openFilePanel is NOT OK")
+        }
     }
     
     func scanDirectory()
     {
-        if let scanResult = try? FileManager.default.contentsOfDirectory(atPath: (self.currentDirectory?.path!)!)
+        if let scanResult = try? FileManager.default.contentsOfDirectory(atPath: (self.currentDirectory?.absoluteURL.path)!)
         {
             currentDirectoryContents.removeAll();
             
             for item in scanResult
             {
                 let suffix = URL(fileURLWithPath: item).pathExtension;
-                if suffix.lowercased() == "rw2"
+                if suffix.lowercased() == "rw2" || suffix.lowercased() == "jpg"
                 {
-                    
+                    currentDirectoryContents.append(URL(filePath: (self.currentDirectory?.absoluteURL.path())! + item))
                 }
             }
             
-            currentDirectoryContents.sort(by:{ $0.absoluteString! > $1.absoluteString! })
+            currentDirectoryContents.sort(by:{ $0.absoluteString < $1.absoluteString })
+        }
+        else
+        {
+            NSSound.beep()
+            print("Can't scan directory")
         }
     }
     
@@ -85,6 +99,8 @@ class FileController: NSObject
     
     func switchImage(next: Bool)
     {
+        self.scanDirectory();
+        
         if let file = self.currentFile
         {
             if let currentIndex = currentDirectoryContents.firstIndex(of: file)
@@ -95,11 +111,16 @@ class FileController: NSObject
                 {
                     self.currentFile = currentDirectoryContents[newIndex];
                     self.publisher.send();
-                    return;
                 }
+                else
+                {
+                    NSSound.beep()
+                }
+                
+                return;
             }
         }
         
-        NSSound.beep()
+        self.currentFile = currentDirectoryContents.first;
     }
 }

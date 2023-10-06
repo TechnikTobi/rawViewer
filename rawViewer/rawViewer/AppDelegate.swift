@@ -10,15 +10,12 @@ import Cocoa
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
 
-    @IBAction func menuFileOpen(_ sender: Any) {
-        
-        let viewController = NSApp.keyWindow?.contentViewController as! ViewController;
-        
-        viewController.viewDidLoad();
-        
-    }
+    var cacheController = CacheController();
     
-
+    @IBAction func menuFileOpen(_ sender: Any) {
+        let viewController = NSApp.keyWindow?.contentViewController as! ViewController;
+        viewController.fileController.openDirectory();
+    }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application

@@ -15,7 +15,7 @@ class Publisher
     {
         for item in self.observers
         {
-            (item as? Observer)?.update()
+            (item as? Observer)?.observerUpdate()
         }
     }
     
@@ -32,5 +32,5 @@ class Publisher
 
 protocol Observer
 {
-    func update();
+    func observerUpdate();
 }
