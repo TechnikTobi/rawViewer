@@ -24,6 +24,6 @@ class CacheController
     
     func cacheImage(url: URL) -> NSImage?
     {
-        return NSImage(byReferencingFile: url.absoluteString);
+        return NSImage(byReferencing: url);
     }
 }

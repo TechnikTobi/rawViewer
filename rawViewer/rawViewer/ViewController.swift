@@ -24,11 +24,9 @@ class ViewController: NSViewController, Observer {
         NSEvent.addLocalMonitorForEvents(matching: NSEvent.EventTypeMask.keyDown, handler: keyDownEvent)
     }
     
-    override var representedObject: Any? {
-        didSet
-        {
-            // Update the view, if already loaded.
-        }
+    override var representedObject: Any?
+    {
+        didSet { /* Update the view, if already loaded. */ }
     }
     
     // Above mentioned local function for key handling
@@ -57,29 +55,8 @@ class ViewController: NSViewController, Observer {
     {
         if let url = self.fileController.currentFile
         {
-            self.imageView.isEnabled = true;
-            let image = (NSApplication.shared.delegate as! AppDelegate).cacheController.getImage(url: url);
-            
-            if image == nil
-            {
-                print("AHA!")
-            }
-            
-            if (image!.isValid)
-            {
-                print("geil")
-            }
-            else
-            {
-                print("no?")
-            }
-            
-            self.imageView.image = image
-            print("huh?")
-        }
-        else
-        {
-            print("PANIC!")
+            self.imageView.window?.title = url.lastPathComponent;
+            self.imageView.image = (NSApplication.shared.delegate as! AppDelegate).cacheController.getImage(url: url);
         }
     }
 }

@@ -74,7 +74,9 @@ class FileController: NSObject
                 let suffix = URL(fileURLWithPath: item).pathExtension;
                 if suffix.lowercased() == "rw2" || suffix.lowercased() == "jpg"
                 {
-                    currentDirectoryContents.append(URL(filePath: (self.currentDirectory?.absoluteURL.path())! + item))
+                    currentDirectoryContents.append(
+                        URL(filePath: item, relativeTo: self.currentDirectory)
+                    )
                 }
             }
             
