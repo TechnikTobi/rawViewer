@@ -10,32 +10,43 @@ import AppKit
 
 class CacheController
 {
-    static let MAX_CACHE_COUNT = 20;
-    static let MIN_CACHE_COUNT = 10;
+    static let MAX_CACHE_COUNT = 5 // 20;
+    static let MIN_CACHE_COUNT = 0 // 10;
+    
+    var lock: DispatchQueue = DispatchQueue.init(label: "")
     
     var cache: [URL: (DispatchTime, NSImage)] = [:];
     
     func getImage(url: URL) async -> NSImage?
     {
-        if self.cache.keys.contains(url)
+        var image: NSImage?
+        
+        lock.sync
         {
-            self.cache[url]!.0 = DispatchTime.now();
-            return self.cache[url]?.1;
+            if self.cache.keys.contains(url)
+            {
+                self.cache[url]!.0 = DispatchTime.now();
+                image = self.cache[url]?.1;
+            }
         }
         
         Task
         {
-            // Resize caches
             self.cleanup()
-            // Get lookahead image data into cache
+            self.lookahead()
         }
         
-        return cacheImage(url: url);
+        return (image != nil) ? image : cacheImage(url: url);
     }
     
     func cacheImage(url: URL) -> NSImage?
     {
-        return NSImage(byReferencing: url);
+        let image = NSImage(byReferencing: url);
+        lock.sync
+        {
+            self.cache[url] = (DispatchTime.now(), image);
+        }
+        return image;
     }
     
     func cleanup()
@@ -52,10 +63,22 @@ class CacheController
         }
         */
         
-        while self.cache.count > CacheController.MAX_CACHE_COUNT
+        lock.sync
         {
-            
+            while self.cache.count > CacheController.MAX_CACHE_COUNT
+            {
+                if let keyToRemove = self.cache.min(by: { $0.value.0 < $1.value.0 })?.key
+                {
+                    self.cache.removeValue(forKey: keyToRemove);
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
+        
+        
     }
     
     func lookahead()
