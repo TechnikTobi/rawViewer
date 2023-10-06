@@ -16,6 +16,7 @@ class FileController: NSObject
     @Published var currentFile: URL? = nil;
     
     var currentDirectoryContents: [URL] = [];
+    var undoManager = UndoManager();
     
     func openDirectory()
     {
@@ -134,8 +135,32 @@ class FileController: NSObject
         {
             do
             {
-                try FileManager.default.trashItem(at: toBeDeleted, resultingItemURL: nil);
+                var trashPath: NSURL? = nil;
                 self.switchImage(next: true);
+                try FileManager.default.trashItem(at: toBeDeleted, resultingItemURL: &trashPath);
+                
+                if trashPath != nil
+                {
+                    let viewController = NSApp.keyWindow?.contentViewController as! ViewController;
+                    
+                    viewController.undoManager?.registerUndo(
+                        withTarget: viewController,
+                        handler:
+                            {
+                                do
+                                {
+                                    try FileManager.default.moveItem(at: trashPath! as URL, to: toBeDeleted)
+                                    self.currentFile = toBeDeleted;
+                                }
+                                catch
+                                {
+                                    print("\(error)")
+                                }
+                                
+                                $0.observerUpdate()
+                            }
+                    )
+                }
             }
             catch
             {

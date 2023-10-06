@@ -19,7 +19,6 @@ class ViewController: NSViewController, Observer {
     // Internal variables
     var fileController = FileController();
     
-    
     override func viewDidLoad()
     {
         super.viewDidLoad();
@@ -62,11 +61,11 @@ class ViewController: NSViewController, Observer {
     {
         if let url = self.fileController.currentFile
         {
+            self.progressIndicator.isHidden = false;
+            self.progressIndicator.startAnimation(nil);
+            
             self.imageView.window?.title = url.lastPathComponent;
             
-            
-            
-            print("requesting image...")
             let image = (NSApplication.shared.delegate as! AppDelegate).cacheController.getImage(url: url);
             self.imageView.image = image;
             
@@ -81,17 +80,12 @@ class ViewController: NSViewController, Observer {
                     if next == nil { break; }
                     let nextImage = (NSApplication.shared.delegate as! AppDelegate).cacheController.getImage(url: next!);
                     self.preview.image = nextImage;
-                    
                 }
+                
+                self.progressIndicator.isHidden = true;
+                self.progressIndicator.stopAnimation(nil);
             }
-        
-            /*
-            self.progressIndicator.isHidden = true;
-            self.progressIndicator.stopAnimation(nil);
-        
-            self.progressIndicator.isHidden = false;
-            self.progressIndicator.startAnimation(nil);
-            */
+
         }
         else
         {
