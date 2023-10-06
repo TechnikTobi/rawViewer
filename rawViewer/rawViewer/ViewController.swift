@@ -38,7 +38,7 @@ class ViewController: NSViewController, Observer {
     // Above mentioned local function for key handling
     func keyDownEvent(event: NSEvent) -> NSEvent?
     {
-        print(event.keyCode)
+        // print(event.keyCode)
         if
             (event.keyCode == 123 || event.keyCode == 126) // Pfeil nach links/oben
         {
@@ -61,7 +61,6 @@ class ViewController: NSViewController, Observer {
     {
         if let url = self.fileController.currentFile
         {
-            print("hm")
             Task
             {
                 self.imageView.image = await (NSApplication.shared.delegate as! AppDelegate).cacheController.getImage(url: url);
