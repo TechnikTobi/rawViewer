@@ -12,7 +12,7 @@ class CacheController
 {
     var cache: [URL: NSImage] = [:];
     
-    func getImage(url: URL) -> NSImage?
+    func getImage(url: URL) async -> NSImage?
     {
         if self.cache.keys.contains(url)
         {

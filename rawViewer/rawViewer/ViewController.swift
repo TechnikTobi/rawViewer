@@ -9,9 +9,15 @@ import Cocoa
 
 class ViewController: NSViewController, Observer {
     
+    // UI Variables
     @IBOutlet weak var imageView: NSImageView!
     
+    @IBOutlet weak var progressIndicator: NSProgressIndicator!
+    
+    
+    // Internal variables
     var fileController = FileController();
+    
     
     override func viewDidLoad()
     {
@@ -56,7 +62,15 @@ class ViewController: NSViewController, Observer {
         if let url = self.fileController.currentFile
         {
             self.imageView.window?.title = url.lastPathComponent;
-            self.imageView.image = (NSApplication.shared.delegate as! AppDelegate).cacheController.getImage(url: url);
+            self.progressIndicator.isHidden = false;
+            self.progressIndicator.startAnimation(nil);
+            
+            Task
+            {
+                self.imageView.image = await (NSApplication.shared.delegate as! AppDelegate).cacheController.getImage(url: url);
+                self.progressIndicator.isHidden = true;
+                self.progressIndicator.stopAnimation(nil);
+            }
         }
     }
 }
