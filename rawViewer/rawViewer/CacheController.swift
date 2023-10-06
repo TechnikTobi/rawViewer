@@ -14,7 +14,7 @@ class CacheController
     static let MIN_CACHE_COUNT = 10;
     
     var lock: DispatchQueue = DispatchQueue.init(label: "")
-    var cache: [URL: (DispatchTime, NSImage)] = [:];
+    var cache: [URL: (DispatchTime, NSImage, Bool)] = [:];
     
     func getImage(url: URL) -> NSImage?
     {
@@ -22,9 +22,20 @@ class CacheController
         
         lock.sync
         {
+            print("keys:")
+            for key in self.cache.keys
+            {
+                print(key.lastPathComponent)
+            }
+            print(" ")
+            
             if !self.cache.keys.contains(url)
             {
-                self.cache[url] = (DispatchTime.now(), self.loadImage(url: url)!)
+                self.cache[url] = (DispatchTime.now(), self.loadImage(url: url)!, false)
+            }
+            else
+            {
+                self.cache[url]!.2 = true;
             }
             
             image = self.cache[url]?.1;
@@ -34,14 +45,31 @@ class CacheController
         {
             lock.sync
             {
-                repeat
+                var unseenItems = 0;
+                for item in self.cache.values
                 {
-                    if let next = self.findNextImageOutsideOfCache()
+                    if !item.2 { unseenItems += 1 }
+                }
+                
+                if unseenItems < 2
+                {
+                    repeat
                     {
-                        self.cache[next] = (DispatchTime.now(), self.loadImage(url: next)!)
+                        if let next = self.findNextImageOutsideOfCache()
+                        {
+                            self.cache[next] = (DispatchTime.now(), self.loadImage(url: next)!, false)
+                        }
+                    }
+                    while self.cache.count < CacheController.MIN_CACHE_COUNT
+                }
+                            
+                while self.cache.count > CacheController.MIN_CACHE_COUNT
+                {
+                    if let toBeRemoved = self.cache.min(by: {$0.value.0 < $1.value.0})?.key
+                    {
+                        self.cache.removeValue(forKey: toBeRemoved);
                     }
                 }
-                while self.cache.count < CacheController.MIN_CACHE_COUNT
             }
         }
         
@@ -73,6 +101,10 @@ class CacheController
             }
             
             directoryContents.sort(by:{ $0.absoluteString < $1.absoluteString })
+        }
+        else
+        {
+            print("huh", directoryURL)
         }
         
         return directoryContents;
