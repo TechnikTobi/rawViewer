@@ -18,41 +18,39 @@ class CacheController
     
     func getImage(url: URL) async -> NSImage?
     {
-        if self.cache.keys.contains(url)
-        {
-            print("found in cache!")
-            
-            Task
-            {
-                if let next = self.findNextImageOutsideOfCache()
-                {
-                    let image = cacheImage(url: next);
-                }
-            }
-            
-            return self.cache[url]?.1;
-        }
+        var image: NSImage?
         
-        return cacheImage(url: url);
-    }
-    
-    func cacheImage(url: URL) -> NSImage?
-    {
-        print("why does this get called?")
-        let image = NSImage(byReferencing: url);
         lock.sync
         {
-            self.cache[url] = (DispatchTime.now(), image);
+            if !self.cache.keys.contains(url)
+            {
+                self.cache[url] = (DispatchTime.now(), self.loadImage(url: url)!)
+            }
+            
+            image = self.cache[url]?.1;
         }
         
-        print("Next: ", self.findNextImageOutsideOfCache())
+        Task
+        {
+            if let next = self.findNextImageOutsideOfCache()
+            {
+                lock.sync
+                {
+                    if self.cache.keys.count % 2 == 0
+                    {
+                        self.cache[next] = (DispatchTime.now(), self.loadImage(url: next)!)
+                    }
+                }
+            }
+        }
         
         return image;
     }
     
-    func initCacheFill()
+    func loadImage(url: URL) -> NSImage?
     {
-        
+        print("loading ", url.lastPathComponent, "...")
+        return NSImage(byReferencing: url);
     }
     
     func scanDirectory(forURL url: URL) -> [URL]
