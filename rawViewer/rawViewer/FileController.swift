@@ -26,6 +26,7 @@ class FileController: NSObject
         openFilePanel.canChooseDirectories    = true;
         openFilePanel.canChooseFiles          = true; // true;
         openFilePanel.allowsMultipleSelection = false;
+        
         openFilePanel.styleMask               = .nonactivatingPanel;
         
         if openFilePanel.runModal() == .OK
@@ -42,14 +43,15 @@ class FileController: NSObject
                 
                 if !is_directory.boolValue
                 {
-                    self.currentDirectory = newURL.deletingPathExtension().deletingLastPathComponent();
+                    self.currentDirectory = newURL.deletingLastPathComponent();
+                    self.switchImage(to: newURL)
                 }
                 else
                 {
                     self.currentDirectory = newURL;
+                    self.switchImage(next: true)
                 }
                 
-                self.switchImage(next: true)
             }
             else
             {
@@ -66,7 +68,18 @@ class FileController: NSObject
     
     func scanDirectory()
     {
-        if let scanResult = try? FileManager.default.contentsOfDirectory(atPath: (self.currentDirectory?.absoluteURL.path)!)
+        var rawScanResult: [String]? = nil;
+        
+        do
+        {
+            rawScanResult = try FileManager.default.contentsOfDirectory(at: (self.currentDirectory?.absoluteURL.path)!, includingPropertiesForKeys: nil, options: [])
+        }
+        catch
+        {
+            print("\(error)")
+        }
+        
+        if let scanResult = rawScanResult
         {
             self.currentDirectoryContents.removeAll();
             
@@ -86,7 +99,8 @@ class FileController: NSObject
         else
         {
             NSSound.beep()
-            print("Can't scan directory")
+            print(self.currentDirectory)
+            print("Can't scan directory (FileController)")
         }
     }
     
@@ -98,6 +112,12 @@ class FileController: NSObject
     func prev()
     {
         self.switchImage(next: false);
+    }
+    
+    func switchImage(to url: URL)
+    {
+        self.scanDirectory();
+        self.setCurrentFile(url);
     }
     
     func switchImage(next: Bool)
