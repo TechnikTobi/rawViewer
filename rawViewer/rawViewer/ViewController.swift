@@ -61,16 +61,21 @@ class ViewController: NSViewController, Observer {
     {
         if let url = self.fileController.currentFile
         {
-            self.imageView.window?.title = url.lastPathComponent;
-            self.progressIndicator.isHidden = false;
-            self.progressIndicator.startAnimation(nil);
-            
+            print("hm")
             Task
             {
                 self.imageView.image = await (NSApplication.shared.delegate as! AppDelegate).cacheController.getImage(url: url);
                 self.progressIndicator.isHidden = true;
                 self.progressIndicator.stopAnimation(nil);
             }
+            
+            self.imageView.window?.title = url.lastPathComponent;
+            self.progressIndicator.isHidden = false;
+            self.progressIndicator.startAnimation(nil);
+        }
+        else
+        {
+            print("PANIC")
         }
     }
 }

@@ -67,20 +67,20 @@ class FileController: NSObject
     {
         if let scanResult = try? FileManager.default.contentsOfDirectory(atPath: (self.currentDirectory?.absoluteURL.path)!)
         {
-            currentDirectoryContents.removeAll();
+            self.currentDirectoryContents.removeAll();
             
             for item in scanResult
             {
                 let suffix = URL(fileURLWithPath: item).pathExtension;
                 if suffix.lowercased() == "rw2" || suffix.lowercased() == "jpg"
                 {
-                    currentDirectoryContents.append(
+                    self.currentDirectoryContents.append(
                         URL(filePath: item, relativeTo: self.currentDirectory)
                     )
                 }
             }
             
-            currentDirectoryContents.sort(by:{ $0.absoluteString < $1.absoluteString })
+            self.currentDirectoryContents.sort(by:{ $0.absoluteString < $1.absoluteString })
         }
         else
         {
@@ -105,24 +105,26 @@ class FileController: NSObject
         
         if let file = self.currentFile
         {
-            if let currentIndex = currentDirectoryContents.firstIndex(of: file)
+            if let currentIndex = self.currentDirectoryContents.firstIndex(of: file)
             {
-                let newIndex = next ? min(currentIndex+1, currentDirectoryContents.count-1) : max(currentIndex-1, 0);
+                let newIndex = next ? min(currentIndex+1, self.currentDirectoryContents.count-1) : max(currentIndex-1, 0);
                 
-                if currentIndex != newIndex
-                {
-                    self.currentFile = currentDirectoryContents[newIndex];
-                    self.publisher.send();
-                }
-                else
-                {
-                    NSSound.beep()
-                }
+                // If the index changed, set the current file, otherwise do a beep and nothing else
+                currentIndex != newIndex ? self.setCurrentFile(self.currentDirectoryContents[newIndex]) : NSSound.beep();
                 
+                // Nothing else to do in this case, so return
                 return;
             }
         }
         
-        self.currentFile = currentDirectoryContents.first;
+        // Either no current file or no current index, so just switch to the first image in the directory
+        self.setCurrentFile(self.currentDirectoryContents.first);
+    }
+    
+    // Sets the current file variable and notifies the observers
+    func setCurrentFile(_ url: URL?)
+    {
+        self.currentFile = url;
+        self.publisher.send();
     }
 }
