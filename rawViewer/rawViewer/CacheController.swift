@@ -23,6 +23,8 @@ class CacheController
         
         lock.sync
         {
+            print(self.cache.keys)
+            
             if self.cache.keys.contains(url)
             {
                 self.cache[url]!.0 = DispatchTime.now();
@@ -33,7 +35,7 @@ class CacheController
         Task
         {
             self.cleanup()
-            self.lookahead()
+            self.lookahead(forURL: url)
         }
         
         return (image != nil) ? image : cacheImage(url: url);
@@ -41,6 +43,7 @@ class CacheController
     
     func cacheImage(url: URL) -> NSImage?
     {
+        print("this should not get called actually")
         let image = NSImage(byReferencing: url);
         lock.sync
         {
@@ -65,24 +68,61 @@ class CacheController
         
         lock.sync
         {
-            while self.cache.count > CacheController.MAX_CACHE_COUNT
+            if self.cache.count > CacheController.MAX_CACHE_COUNT
             {
-                if let keyToRemove = self.cache.min(by: { $0.value.0 < $1.value.0 })?.key
+                while self.cache.count > CacheController.MIN_CACHE_COUNT
                 {
-                    self.cache.removeValue(forKey: keyToRemove);
-                }
-                else
-                {
-                    break;
+                    if let keyToRemove = self.cache.min(by: { $0.value.0 < $1.value.0 })?.key
+                    {
+                        self.cache.removeValue(forKey: keyToRemove);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
+            print("Current cache size: ", self.cache.count)
         }
+        
+        
         
         
     }
     
-    func lookahead()
+    func lookahead(forURL url: URL)
     {
+        let directoryURL = url.deletingPathExtension().deletingLastPathComponent();
+        var currentDirectoryContents: [URL] = [];
         
+        if let scanResult = try? FileManager.default.contentsOfDirectory(atPath: directoryURL.absoluteURL.path)
+        {
+            for item in scanResult
+            {
+                let suffix = URL(fileURLWithPath: item).pathExtension;
+                if suffix.lowercased() == "rw2" || suffix.lowercased() == "jpg"
+                {
+                    currentDirectoryContents.append(
+                        URL(filePath: item, relativeTo: directoryURL)
+                    )
+                }
+            }
+            
+            currentDirectoryContents.sort(by:{ $0.absoluteString < $1.absoluteString })
+        }
+        
+        if let currentIndex = currentDirectoryContents.firstIndex(of: url)
+        {
+            var offset = 1;
+            lock.sync
+            {
+                while self.cache.count < CacheController.MAX_CACHE_COUNT
+                {
+                    let newURL = currentDirectoryContents[currentIndex+offset]
+                    self.cache[newURL] = (DispatchTime.now(), NSImage(byReferencing: newURL));
+                    offset += 1;
+                }
+            }
+        }
     }
 }
