@@ -10,8 +10,8 @@ import AppKit
 
 class CacheController
 {
-    static let MAX_CACHE_COUNT = 20;
-    static let MIN_CACHE_COUNT = 10;
+    static let MAX_CACHE_COUNT = 30;
+    static let MIN_CACHE_COUNT = 20;
     
     var lock: DispatchQueue = DispatchQueue.init(label: "")
     var cache: [URL: (DispatchTime, NSImage, Bool)] = [:];
@@ -22,13 +22,6 @@ class CacheController
         
         lock.sync
         {
-            print("keys:")
-            for key in self.cache.keys
-            {
-                print(key.lastPathComponent)
-            }
-            print(" ")
-            
             if !self.cache.keys.contains(url)
             {
                 self.cache[url] = (DispatchTime.now(), self.loadImage(url: url)!, false)
@@ -59,6 +52,11 @@ class CacheController
                         {
                             self.cache[next] = (DispatchTime.now(), self.loadImage(url: next)!, false)
                         }
+                        else
+                        {
+                            print("Can't get next")
+                            break;
+                        }
                     }
                     while self.cache.count < CacheController.MIN_CACHE_COUNT
                 }
@@ -87,24 +85,25 @@ class CacheController
         let directoryURL = url.deletingPathExtension().deletingLastPathComponent();
         var directoryContents: [URL] = [];
         
-        if let scanResult = try? FileManager.default.contentsOfDirectory(atPath: directoryURL.absoluteURL.path)
+        do
         {
-            for item in scanResult
+            for item in try FileManager.default.contentsOfDirectory(
+                at: directoryURL,
+                includingPropertiesForKeys: nil
+            )
             {
-                let suffix = URL(fileURLWithPath: item).pathExtension;
-                if suffix.lowercased() == "rw2" || suffix.lowercased() == "jpg"
+                let suffix = item.pathExtension.lowercased()
+                if suffix == "rw2" || suffix == "jpg"
                 {
-                    directoryContents.append(
-                        URL(filePath: item, relativeTo: directoryURL)
-                    )
+                    directoryContents.append(item)
                 }
             }
             
             directoryContents.sort(by:{ $0.absoluteString < $1.absoluteString })
         }
-        else
+        catch
         {
-            print("huh", directoryURL)
+            print("\(error)")
         }
         
         return directoryContents;

@@ -68,39 +68,27 @@ class FileController: NSObject
     
     func scanDirectory()
     {
-        var rawScanResult: [String]? = nil;
+        self.currentDirectoryContents.removeAll();
         
         do
         {
-            rawScanResult = try FileManager.default.contentsOfDirectory(at: (self.currentDirectory?.absoluteURL.path)!, includingPropertiesForKeys: nil, options: [])
-        }
-        catch
-        {
-            print("\(error)")
-        }
-        
-        if let scanResult = rawScanResult
-        {
-            self.currentDirectoryContents.removeAll();
-            
-            for item in scanResult
+            for item in try FileManager.default.contentsOfDirectory(
+                at: self.currentDirectory!,
+                includingPropertiesForKeys: nil
+            )
             {
-                let suffix = URL(fileURLWithPath: item).pathExtension;
-                if suffix.lowercased() == "rw2" || suffix.lowercased() == "jpg"
+                let suffix = item.pathExtension.lowercased()
+                if suffix == "rw2" || suffix == "jpg"
                 {
-                    self.currentDirectoryContents.append(
-                        URL(filePath: item, relativeTo: self.currentDirectory)
-                    )
+                    self.currentDirectoryContents.append(item)
                 }
             }
             
             self.currentDirectoryContents.sort(by:{ $0.absoluteString < $1.absoluteString })
         }
-        else
+        catch
         {
-            NSSound.beep()
-            print(self.currentDirectory)
-            print("Can't scan directory (FileController)")
+            print("\(error)")
         }
     }
     
@@ -136,6 +124,14 @@ class FileController: NSObject
                 // Nothing else to do in this case, so return
                 return;
             }
+            else
+            {
+                print("ERROR: Can't get current index!")
+            }
+        }
+        else
+        {
+            print("ERROR: Can't get current file!")
         }
         
         // Either no current file or no current index, so just switch to the first image in the directory
